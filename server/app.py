@@ -83,14 +83,12 @@ class CheckSession(Resource):
             return user.to_dict(), 200
         
         return {}, 401
-@app.before_request
-def check_if_logged_in():
-    whitelist=['member_index']
-    if 'user_id' not in session and request.endpoint not in whitelist:
-        return jsonify({'error': 'Unauthorized'}), 401
+
 class MemberOnlyIndex(Resource):
     
     def get(self):
+        if not session['user_id']:
+            return {'error': 'Unauthorized'}, 401
         articles=Article.query.all()
         art_list=[article.to_dict() for article in articles]
         return art_list
@@ -98,6 +96,8 @@ class MemberOnlyIndex(Resource):
 class MemberOnlyArticle(Resource):
     
     def get(self, id):
+        if not session['user_id']:
+            return {'error': 'Unauthorized'}, 401
         article=Article.query.filter(Article.id==id).first()
         return article.to_dict()
 
